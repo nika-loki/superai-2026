@@ -1,0 +1,23 @@
+{
+  "name": "salesduo",
+  "version": "0.0.0",
+  "type": "module",
+  "imports": {
+    "#*": "./agent/*",
+    "#evals/*": "./evals/*"
+  },
+  "scripts": {
+    "build": "ash build",
+    "dev": "ash dev",
+    "start": "ash start",
+    "typecheck": "tsgo"
+  },
+  "dependencies": {
+    "ai": "7.0.0-canary.159",
+    "experimental-ash": "latest",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20260523.1"
+  }
+}

@@ -1,0 +1,4 @@
+minimumReleaseAgeExclude:
+  - experimental-ash
+allowBuilds:
+  sharp: false
