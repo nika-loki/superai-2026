@@ -1,6 +1,6 @@
 import { db } from "@/agent/lib/db/index";
 import { organisations, signals, agentRuns } from "@/agent/lib/db/schema";
-import { count, sql, inArray, eq, and } from "drizzle-orm";
+import { count, sql, inArray, and } from "drizzle-orm";
 import { DashboardTableClient } from "@/components/dashboard-table-client";
 import { SearchAccountsHint } from "@/components/search-accounts-hint";
 import { RequestTimer } from "@/agent/lib/db/timing";
@@ -70,7 +70,7 @@ export default async function DashboardPage({
         db
           .select({ orgId: agentRuns.orgId })
           .from(agentRuns)
-          .where(and(inArray(agentRuns.orgId, orgIds), eq(agentRuns.status, "running")))
+          .where(and(inArray(agentRuns.orgId, orgIds), sql`${agentRuns.status}::text = 'running'`))
           .groupBy(agentRuns.orgId),
       )
     : [];
