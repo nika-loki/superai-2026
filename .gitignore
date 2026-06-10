@@ -22,5 +22,11 @@ dist
 .bt/
 .aws/
 
+# Screenshots & eval output
+*.png
+!public/*.png
+eval-output.json
+eval-stderr.log
+
 # Agent eval output (contains real PII)
 docs/batch-eval-results.json

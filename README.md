@@ -1,4 +1,4 @@
-# RevenueOS
+# RevenueOS by SalesDuo
 
 **Autonomous Revenue Agent, Purpose-Built for APAC**
 
@@ -8,7 +8,7 @@ RevenueOS is an autonomous AI agent that researches target accounts across 30+ A
 
 It doesn't just find data. It researches accounts end-to-end: deep-diving companies via 8-angle Exa searches, profiling stakeholders across 6 dimensions, scoring signals against your ICP, mapping buying committees, and turning every insight into a prioritized next-best-action for your sales team. Then it remembers what it learned, decides when to re-research, and runs again on its own schedule.
 
-Built for the [SuperAI 2026 Hackathon](https://superai.io/) — live-demoed on the WEKA stage in front of 10,000 attendees.
+Built for the [SuperAI 2026 Hackathon](https://www.superai.com/next-hackathon) — live-demoed on the WEKA stage in front of 10,000 attendees.
 
 ## What Makes It Different
 
@@ -161,4 +161,4 @@ pnpm typecheck    # TypeScript type checking
 
 ## License
 
-[MIT](LICENSE) — SalesDuo Pte. Ltd.
+[MIT](LICENSE) — [RevenueOS by SalesDuo](https://salesduo.io)
