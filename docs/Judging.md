@@ -50,10 +50,13 @@ All three awards are stackable. RevenueOS is scoped to win all three.
 
 ### 1. Agent Overview
 
-RevenueOS is a **single sales agent** — not a generic agent platform, not multi-agent.
+RevenueOS is a **skill-routed sales agent** — one primary agent with 7 specialized sub-behaviors for different sales scenarios.
 
 - **Purpose**: autonomous per-account sales research agent, purpose-built for APAC
 - **One agent instance per CRM account**, each with its own context and memory
+- **7 skills** act as sub-agents: onboarding-research, prospecting, deal-management, singapore, australia, indonesia, hubspot-import
+- **3 dynamic instruction layers** inject context automatically: seller ICP, account memory, stage detection
+- **Stage-adaptive**: the agent detects account state (new prospect, active engagement, refresh run) and selects the right skill
 - **Scope**: the sales motion only. It handles the **Pre** (research, signals, briefings, warm paths) and the **Post** (drafts, CRM updates, tasks, follow-through). Humans own the **During** (every live buyer conversation). The agent never conducts live buyer conversations.
 - **Embedded in HubSpot** — reads existing CRM data to avoid duplicating research, writes contacts/deals back
 - **Model**: Anthropic Claude via Vercel AI Gateway, orchestrated through the Ash framework
@@ -101,20 +104,43 @@ HubSpot lookup (check existing data)
 
 ### 4. Orchestration
 
-**Single-agent architecture** — no multi-agent coordination overhead, no inter-agent communication bugs.
+**Skill-routed agent architecture** — one primary agent (Ash, Claude Sonnet 4) with **7 specialized skills** that act as sub-behaviors for different sales scenarios. The agent self-selects which skill to activate based on account state.
 
-The agent operates through a defined **skill pipeline**:
-1. Load market skill for the account's region (Singapore, Australia, Indonesia)
-2. Fetch org context and recall accumulated knowledge from Honcho
-3. Check CRM context via HubSpot lookup
-4. Execute Exa searches (people, company deep dive, agentic research, Q&A)
-5. Deep-dive key contacts found
-6. Persist all results to Aurora RDS
-7. Store learnings back to Honcho
-8. Determine refresh interval and write `nextRunAt`
-9. Create engagement tasks for the sales team
+**Dynamic context injection (3 layers, automatic):**
 
-**Scheduling:** A Vercel Cron job runs hourly, queries accounts where `nextRunAt <= now`, and triggers fresh agent sessions via the Ash framework. No human intervention required between research cycles.
+| Layer | What It Does | When |
+|---|---|---|
+| **Seller ICP** (`org-soul.ts`) | Loads the seller's Organisation.md from S3 + target account details from RDS. Injects seller POV into every turn. | Session start |
+| **Account memory** (`honcho-recall.ts`) | Recalls accumulated knowledge from all prior runs via Honcho. Each account has its own peer. | Session start |
+| **Stage detection** (`stage-context.ts`) | Counts existing contacts, signals, and pending tasks. Classifies the account as NEW PROSPECT, ACTIVE ENGAGEMENT, or REFRESH RUN. Adapts agent behavior accordingly. | Every turn |
+
+**Skill routing — agent picks the right sub-behavior based on what the account needs:**
+
+| Skill | When It Activates | What It Does |
+|---|---|---|
+| **onboarding-research** | New account, no prior intelligence | Comprehensive first-run: 8-angle company deep dive, contact discovery, signal baseline |
+| **prospecting** | Need to build out the buying committee | Contact prioritization (P0-P3), signal detection checklist, ICP scoring (0-100) |
+| **deal-management** | Active sales cycle, existing contacts/signals | Buying committee mapping, next-best-action by deal stage (discovery → evaluation → negotiation → at-risk), engagement timing |
+| **singapore** | Account HQ'd in Singapore | Market-specific search strategies, local business culture, key industries |
+| **australia** | Account HQ'd in Australia | Market-specific search strategies, local business culture, key industries |
+| **indonesia** | Account HQ'd in Indonesia | Market-specific search strategies, local business culture, key industries |
+| **hubspot-import** | CRM data available for the account | Lookup existing contacts/deals to avoid duplicating research |
+
+**Execution pipeline:**
+
+```
+Session starts
+  → org-soul.ts injects seller ICP + target account
+  → honcho-recall.ts injects accumulated memory
+  → stage-context.ts classifies account stage
+  → Agent selects appropriate skill(s)
+  → Executes research via 16 tools
+  → Persists findings to RDS + Honcho
+  → Updates scheduling (nextRunAt)
+  → Creates engagement tasks
+```
+
+**Scheduling:** A Vercel Cron job runs hourly, queries accounts where `nextRunAt <= now`, and triggers fresh agent sessions. No human intervention required between research cycles.
 
 ### 5. Human-in-the-Loop
 
