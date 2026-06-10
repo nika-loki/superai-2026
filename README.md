@@ -14,10 +14,6 @@ Built for the [SuperAI 2026 Hackathon](https://www.superai.com/next-hackathon).
 
 AI handles the **Pre** (research, signals, briefings, warm paths) and the **Post** (drafts, CRM updates, tasks, follow-through). Humans own the **During**: every live buyer conversation. The agent never conducts live buyer conversations. Pre and Post only.
 
-## Why APAC
-
-Deals here run on WhatsApp, across multiple countries and languages, with low CRM hygiene. The deal context never reaches the CRM — so tools that read CRM exhaust have nothing to read. RevenueOS captures **off-CRM context** into a self-learning graph. **Capture is the product, not a prerequisite.**
-
 ## The Agent Model
 
 - **Sales agent, scoped to the sales motion only.** Not a generic agent platform.
