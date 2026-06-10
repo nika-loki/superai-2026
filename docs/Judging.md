@@ -54,7 +54,8 @@ RevenueOS is a **skill-routed sales agent** — one primary agent with 7 special
 
 - **Purpose**: autonomous per-account sales research agent, purpose-built for APAC
 - **One agent instance per CRM account**, each with its own context and memory
-- **7 skills** act as sub-agents: onboarding-research, prospecting, deal-management, singapore, australia, indonesia, hubspot-import
+- **4 sales skills** the agent selects based on account state: onboarding-research, prospecting, deal-management, hubspot-import
+- **3 market skills** dynamically injected based on account region: singapore, australia, indonesia
 - **3 dynamic instruction layers** inject context automatically: seller ICP, account memory, stage detection
 - **Stage-adaptive**: the agent detects account state (new prospect, active engagement, refresh run) and selects the right skill
 - **Scope**: the sales motion only. It handles the **Pre** (research, signals, briefings, warm paths) and the **Post** (drafts, CRM updates, tasks, follow-through). Humans own the **During** (every live buyer conversation). The agent never conducts live buyer conversations.
@@ -141,7 +142,7 @@ HubSpot lookup (check existing data)
 
 ### 4. Orchestration
 
-**Skill-routed agent architecture** — one primary agent (Ash, Claude Sonnet 4) with **7 specialized skills** that act as sub-behaviors for different sales scenarios. The agent self-selects which skill to activate based on account state.
+**Skill-routed agent architecture** — one primary agent (Ash, Claude Sonnet 4) with **4 sales skills** (agent-selected based on account state) and **3 market skills** (dynamically injected based on account region).
 
 **Dynamic context injection (3 layers, automatic):**
 
@@ -151,17 +152,24 @@ HubSpot lookup (check existing data)
 | **Account memory** (`honcho-recall.ts`) | Recalls accumulated knowledge from all prior runs via Honcho. Each account has its own peer. | Session start |
 | **Stage detection** (`stage-context.ts`) | Counts existing contacts, signals, and pending tasks. Classifies the account as NEW PROSPECT, ACTIVE ENGAGEMENT, or REFRESH RUN. Adapts agent behavior accordingly. | Every turn |
 
-**Skill routing — agent picks the right sub-behavior based on what the account needs:**
+**Skill routing — two types:**
+
+**Sales skills** (agent selects based on account state):
 
 | Skill | When It Activates | What It Does |
 |---|---|---|
 | **onboarding-research** | New account, no prior intelligence | Comprehensive first-run: 8-angle company deep dive, contact discovery, signal baseline |
 | **prospecting** | Need to build out the buying committee | Contact prioritization (P0-P3), signal detection checklist, ICP scoring (0-100) |
 | **deal-management** | Active sales cycle, existing contacts/signals | Buying committee mapping, next-best-action by deal stage (discovery → evaluation → negotiation → at-risk), engagement timing |
-| **singapore** | Account HQ'd in Singapore | Market-specific search strategies, local business culture, key industries |
-| **australia** | Account HQ'd in Australia | Market-specific search strategies, local business culture, key industries |
-| **indonesia** | Account HQ'd in Indonesia | Market-specific search strategies, local business culture, key industries |
 | **hubspot-import** | CRM data available for the account | Lookup existing contacts/deals to avoid duplicating research |
+
+**Market skills** (dynamically injected based on account's HQ country):
+
+| Skill | Trigger | What It Injects |
+|---|---|---|
+| **singapore** | `hqCountry = "Singapore"` | Local business culture, key industries (fintech, logistics, SaaS), region-specific search strategies |
+| **australia** | `hqCountry = "Australia"` | Local business culture, key industries, ANZ-specific search strategies |
+| **indonesia** | `hqCountry = "Indonesia"` | Local business culture, key industries, Bahasa Indonesia considerations, local platform norms |
 
 **Execution pipeline:**
 
