@@ -1,11 +1,12 @@
-import Link from "next/link";
 import { db } from "@/agent/lib/db/index";
 import { organisations, signals } from "@/agent/lib/db/schema";
-import { count, sql } from "drizzle-orm";
+import { count, sql, inArray } from "drizzle-orm";
 import { DashboardTableClient } from "@/components/dashboard-table-client";
 import { SearchAccountsHint } from "@/components/search-accounts-hint";
 import { RequestTimer } from "@/agent/lib/db/timing";
 import { storePerfData } from "@/agent/lib/db/perf-store";
+
+type OrgRow = typeof organisations.$inferSelect;
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function DashboardPage({
   const now = Date.now();
   let totalCount = cachedTotalCount;
   if (now - cachedTotalCountAt > COUNT_CACHE_TTL_MS) {
-    [{ count: totalCount }] = await timer.timed("count-orgs", () =>
+    [{ count: totalCount }] = await timer.timed<{ count: number }[]>("count-orgs", () =>
       db.select({ count: count() }).from(organisations),
     );
     cachedTotalCount = totalCount;
@@ -39,7 +40,7 @@ export default async function DashboardPage({
   }
 
   // Fetch page of orgs ordered by opportunity score
-  const orgs = await timer.timed("page-orgs", () =>
+  const orgs = await timer.timed<OrgRow[]>("page-orgs", () =>
     db
       .select()
       .from(organisations)
@@ -49,26 +50,26 @@ export default async function DashboardPage({
   );
 
   // Fetch signal counts only for the orgs on this page
-  const orgIds = orgs.map((o) => o.id);
+  const orgIds = orgs.map((o: OrgRow) => o.id);
 
   const signalCounts = orgIds.length > 0
-    ? await timer.timed("signal-counts", () =>
+    ? await timer.timed<{ orgId: string | null; count: number }[]>("signal-counts", () =>
         db
           .select({
             orgId: signals.orgId,
             count: count(),
           })
           .from(signals)
-          .where(sql`${signals.orgId} IN ${orgIds}`)
+          .where(inArray(signals.orgId, orgIds))
           .groupBy(signals.orgId),
       )
     : [];
 
   const signalCountMap = new Map(
-    signalCounts.map((r) => [r.orgId, r.count]),
+    signalCounts.map((r: { orgId: string | null; count: number }) => [r.orgId, r.count]),
   );
 
-  const rows = orgs.map((org) => ({
+  const rows = orgs.map((org: OrgRow) => ({
     id: org.id,
     name: org.name,
     domain: org.domain,
@@ -77,6 +78,7 @@ export default async function DashboardPage({
     status: org.status ?? "onboarding",
     lastResearchedAt: org.lastResearchedAt?.toISOString() ?? null,
     nextRunAt: org.nextRunAt?.toISOString() ?? null,
+    refreshIntervalDays: org.refreshIntervalDays ?? null,
     signalCount: signalCountMap.get(org.id) ?? 0,
   }));
 
@@ -96,36 +98,13 @@ export default async function DashboardPage({
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-notion-text">
-              RevenueOS
-            </h1>
-            <p className="text-sm text-notion-text-muted mt-0.5">
-              APAC Account Intelligence
-            </p>
-          </div>
-          <span className="text-notion-border">|</span>
-          <Link
-            href="/demo"
-            className="text-sm text-notion-text-muted hover:text-notion-blue transition-colors"
-          >
-            Demo
-          </Link>
-          <span className="text-notion-border">|</span>
-          <Link
-            href="/billing"
-            className="text-sm text-notion-text-muted hover:text-notion-blue transition-colors"
-          >
-            Billing
-          </Link>
-          <span className="text-notion-border">|</span>
-          <Link
-            href="/settings"
-            className="text-sm text-notion-text-muted hover:text-notion-blue transition-colors"
-          >
-            Settings
-          </Link>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-notion-text">
+            Dashboard
+          </h1>
+          <p className="text-sm text-notion-text-muted mt-0.5">
+            APAC Account Intelligence
+          </p>
         </div>
         <SearchAccountsHint />
       </div>
