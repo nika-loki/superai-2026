@@ -1,33 +1,39 @@
 # RevenueOS by SalesDuo
 
-**Autonomous Revenue Agent, Purpose-Built for APAC**
+**Background Autonomous Per-Account Sales Agent, Purpose-Built for APAC**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-RevenueOS is an autonomous AI agent that researches target accounts across 30+ APAC markets, surfaces stakeholders and buying signals, and schedules ongoing re-evaluation — all without human prompting between runs.
-
-It doesn't just find data. It researches accounts end-to-end: deep-diving companies via 8-angle Exa searches, profiling stakeholders across 6 dimensions, scoring signals against your ICP, mapping buying committees, and turning every insight into a prioritized next-best-action for your sales team. Then it remembers what it learned, decides when to re-research, and runs again on its own schedule.
+One agent per account. Runs autonomously in the background. Embedded in HubSpot. Adapts to whatever the account's current sales stage requires.
 
 Built for the [SuperAI 2026 Hackathon](https://www.superai.com/next-hackathon).
 
-## What Makes It Different
+## Thesis
 
-| Feature | How It Works |
-|---|---|
-| **Self-scheduling** | Agent decides its own refresh interval (3 / 14 / 30 days) based on ICP fit quality. No human sets a timer. |
-| **Self-learning** | Honcho accumulates memory across runs per account. Each research cycle is smarter than the last. |
-| **Market-specific intelligence** | Per-country skills with region-appropriate research strategies (Singapore, Australia, Indonesia, more to come). |
-| **16-tool pipeline** | Search (Exa), persistence (Aurora RDS), context (DB read), memory (Honcho), CRM (HubSpot) — all wired end-to-end. |
-| **Multi-source signals** | Dynamic signal types from ICP, direct quotes from stakeholders, relevance reasoning — not just keyword matches. |
-| **CRM-enriched research** | HubSpot integration supplements Exa research with existing CRM data, avoiding duplication and providing deal context. |
+**Human sellers. AI superpowers.**
+
+AI handles the **Pre** (research, signals, briefings, warm paths) and the **Post** (drafts, CRM updates, tasks, follow-through). Humans own the **During**: every live buyer conversation. The agent never conducts live buyer conversations. Pre and Post only.
+
+## Why APAC
+
+Deals here run on WhatsApp, across multiple countries and languages, with low CRM hygiene. The deal context never reaches the CRM — so tools that read CRM exhaust have nothing to read. RevenueOS captures **off-CRM context** into a self-learning graph. **Capture is the product, not a prerequisite.**
+
+## The Agent Model
+
+- **Sales agent, scoped to the sales motion only.** Not a generic agent platform.
+- **One agent instance per CRM account**, each with its own context.
+- **Runs autonomously in the background.** No prompting required.
+- **Stage-adaptive**: the agent decides what to do from account state — prospecting, qualification, demo prep, negotiation, stall, loss, post-close nurture.
+- **Self-scheduling**: decides its own refresh interval (3 / 14 / 30 days) based on ICP fit quality.
+- **Self-learning**: Honcho accumulates memory across runs per account. Each cycle is smarter than the last.
 
 ## How It Works
 
 1. **Add target accounts** — Enter company names or domains with your ICP criteria
-2. **Agent researches autonomously** — Deep research using Exa: 8-angle company deep dives, 6-dimension stakeholder profiling, signal detection, people discovery
+2. **Agent researches autonomously** — 8-angle Exa company deep dives, 6-dimension stakeholder profiling, signal detection, people discovery
 3. **Signals surface automatically** — Funding rounds, leadership changes, product launches, expansion signals — all captured and scored for ICP relevance
 4. **Get prioritized actions** — Engagement tasks with rationale: who to contact, what to say, when to reach out
-5. **Agent re-runs on its own** — Self-determined schedule based on account fit. Accumulates knowledge across runs.
+5. **Agent re-runs on its own** — Self-determined schedule based on account fit, accumulating knowledge across runs
 
 ## Tech Stack
 
@@ -42,18 +48,18 @@ Built for the [SuperAI 2026 Hackathon](https://www.superai.com/next-hackathon).
 | Auth | AWS Cognito |
 | Payments | [Stripe](https://stripe.com) (subscription + metered usage) |
 | Agent Memory | [Honcho](https://honcho.ai) |
-| CRM | HubSpot integration |
+| CRM | HubSpot (embedded integration) |
 | Observability | Braintrust + OpenTelemetry |
 | Hosting | Vercel (deploy + cron jobs) |
 
 ## Architecture
 
 ```
-User → Next.js UI → Ash Agent → Exa Search (5 tools)
-                              → DB Write (5 tools)
-                              → DB Read (3 tools)
-                              → Honcho Memory (2 tools)
-                              → HubSpot CRM (1 tool)
+HubSpot CRM ←→ RevenueOS Agent → Exa Search (5 tools)
+                                → DB Write (5 tools)
+                                → DB Read (3 tools)
+                                → Honcho Memory (2 tools)
+                                → HubSpot CRM (1 tool)
 
 Hourly Cron → Check accounts where nextRunAt ≤ now → Trigger fresh agent session
 ```
