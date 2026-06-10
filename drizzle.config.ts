@@ -17,7 +17,7 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    host: process.env.DB_HOST ?? "revenue-os.cluster-c16mg8kgkpip.us-west-2.rds.amazonaws.com",
+    host: (() => { const h = process.env.DB_HOST; if (!h) throw new Error("DB_HOST env var is required"); return h; })(),
     port: Number(process.env.DB_PORT ?? 5432),
     database: process.env.DB_NAME ?? "postgres",
     user: process.env.DB_USER ?? "postgres",

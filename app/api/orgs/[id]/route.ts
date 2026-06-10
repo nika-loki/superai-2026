@@ -6,9 +6,14 @@ import {
   contacts,
   deals,
 } from "@/agent/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import type { Signal, Task, AgentRun, Contact, Deal } from "@/lib/data";
 import { RequestTimer } from "@/agent/lib/db/timing";
+
+type SignalRow = typeof signals.$inferSelect;
+type TaskRow = typeof tasks.$inferSelect;
+type ContactRow = typeof contacts.$inferSelect;
+type AgentRunRow = typeof agentRuns.$inferSelect;
 
 export async function GET(
   _request: Request,
@@ -24,7 +29,7 @@ export async function GET(
         db
           .select({ id: agentRuns.id })
           .from(agentRuns)
-          .where(and(eq(agentRuns.orgId, id), eq(agentRuns.status, "running")))
+          .where(and(eq(agentRuns.orgId, id), sql`${agentRuns.status}::text = 'running'`))
           .limit(1),
         db
           .select()
@@ -69,7 +74,7 @@ export async function GET(
     // Table not migrated yet — return empty
   }
 
-  const mappedSignals: Signal[] = signalRows.map((s) => ({
+  const mappedSignals: Signal[] = signalRows.map((s: SignalRow) => ({
     id: s.id,
     type: s.type,
     title: s.title,
@@ -84,7 +89,7 @@ export async function GET(
     createdAt: s.createdAt.toISOString(),
   }));
 
-  const mappedTasks: Task[] = taskRows.map(({ task: t, contactName }) => ({
+  const mappedTasks: Task[] = taskRows.map(({ task: t, contactName }: { task: TaskRow; contactName: string | null }) => ({
     id: t.id,
     type: t.type,
     status: t.status ?? "pending",
@@ -95,7 +100,7 @@ export async function GET(
     createdAt: t.createdAt.toISOString(),
   }));
 
-  const mappedContacts: Contact[] = contactRows.map((c) => ({
+  const mappedContacts: Contact[] = contactRows.map((c: ContactRow) => ({
     id: c.id,
     name: c.name,
     title: c.title,
@@ -117,10 +122,14 @@ export async function GET(
     createdAt: d.createdAt.toISOString(),
   }));
 
-  const mappedRuns: AgentRun[] = runRows.map((r) => ({
+  const mappedRuns: AgentRun[] = runRows.map((r: AgentRunRow) => ({
     id: r.id,
     status: r.status ?? "pending",
     toolsInvoked: r.toolsInvoked ?? 0,
+    traceData:
+      (r.traceData as Array<{ callId: string; toolName: string; status: "completed" | "failed" | "running"; input?: string; output?: string; startedAt?: string; completedAt?: string }>) ??
+      [],
+    chainOfThought: r.chainOfThought ?? null,
     durationMs: r.durationMs,
     summary: r.summary,
     icpFitScore: r.icpFitScore,

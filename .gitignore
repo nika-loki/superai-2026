@@ -1,5 +1,6 @@
 node_modules
 .env*
+!.env.example
 .ash
 .vercel
 .workflow-data
@@ -9,3 +10,17 @@ node_modules
 dist
 .DS_Store
 *.tsbuildinfo
+
+# Secrets & certificates
+*.pem
+*.key
+
+# Tool configs (may contain project IDs, tokens)
+.claude/
+.mcp.json
+.playwright-mcp/
+.bt/
+.aws/
+
+# Agent eval output (contains real PII)
+docs/batch-eval-results.json

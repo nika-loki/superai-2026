@@ -1,0 +1,33 @@
+{
+  "org": {
+    "name": "Grab",
+    "domain": "grab.com",
+    "hqCountry": "Singapore",
+    "icpScore": 87
+  },
+  "toolCalls": [
+    { "tool": "exa_company_deep_dive", "status": "completed", "duration": 4500, "summary": "Analyzed 8 dimensions: funding ($4.5B total), growth (+34% YoY), expansion (3 new markets), tech stack, leadership changes..." },
+    { "tool": "exa_people_search", "status": "completed", "duration": 3200, "summary": "Found 12 key contacts including CTO, VP Engineering, Head of GrabFin..." },
+    { "tool": "honcho_recall", "status": "completed", "duration": 800, "summary": "Recalled 3 previous research memories about Grab's fintech pivot" },
+    { "tool": "exa_person_deep_dive", "status": "completed", "duration": 5100, "summary": "Deep profiles on 5 key stakeholders: CTO recently spoke at Singapore Fintech Festival..." },
+    { "tool": "db_write_contacts", "status": "completed", "duration": 600, "summary": "Persisted 8 contacts to database" },
+    { "tool": "db_write_signals", "status": "completed", "duration": 450, "summary": "Persisted 6 signals: funding round, exec hire, product launch, expansion, partnership, regulatory change" },
+    { "tool": "db_update_org", "status": "completed", "duration": 200, "summary": "Updated ICP score: 82 → 87, status: onboarding → active" },
+    { "tool": "honcho_remember", "status": "completed", "duration": 900, "summary": "Stored 5 key findings in account memory" }
+  ],
+  "signals": [
+    { "type": "funding", "title": "Grab raises $500M Series F extension for GrabFin expansion", "impact": "high", "icpRelevance": 92 },
+    { "type": "expansion", "title": "Grab enters Vietnam digital banking market", "impact": "high", "icpRelevance": 85 },
+    { "type": "leadership", "title": "New CTO appointed from Meta AI division", "impact": "medium", "icpRelevance": 78 },
+    { "type": "product", "title": "GrabMaps launched as standalone B2B API", "impact": "high", "icpRelevance": 91 },
+    { "type": "partnership", "title": "Strategic partnership with Temasek for SEA infrastructure", "impact": "medium", "icpRelevance": 73 },
+    { "type": "regulatory", "title": "MAS grants Grab digital banking license", "impact": "high", "icpRelevance": 88 }
+  ],
+  "contacts": [
+    { "name": "Philipp Kandal", "title": "CTO", "seniority": "c-suite", "relevance": "high" },
+    { "name": "Srinivas Mukkamala", "title": "VP Engineering", "seniority": "vp", "relevance": "high" },
+    { "name": "Reuben Lai", "title": "Head of GrabFin", "seniority": "vp", "relevance": "high" },
+    { "name": "Wei-Ming Tan", "title": "Director of Product", "seniority": "director", "relevance": "medium" }
+  ],
+  "summary": "Grab is executing an aggressive fintech pivot across Southeast Asia with $500M fresh funding, a new CTO from Meta, and MAS digital banking license. Strong ICP fit (87/100) driven by expansion signals, tech hiring velocity, and GrabFin B2B product launch. Recommend immediate outreach to CTO and VP Engineering regarding AI infrastructure needs."
+}

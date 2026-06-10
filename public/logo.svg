@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 32" width="160" height="32">
+  <defs>
+    <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon -->
+  <rect x="0" y="0" width="32" height="32" rx="8" ry="8" fill="url(#lg)"/>
+  <circle cx="16" cy="18" r="3" fill="white" opacity="0.95"/>
+  <path d="M10.3 13.7 A8 8 0 0 1 21.7 13.7" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+  <path d="M6.5 10.5 A13 13 0 0 1 25.5 10.5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M3 7.5 A17.5 17.5 0 0 1 29 7.5" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.25"/>
+  <!-- Wordmark -->
+  <text x="40" y="22" font-family="Inter, -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#1F2937" letter-spacing="-0.3">
+    Revenue<tspan fill="#7C3AED">OS</tspan>
+  </text>
+</svg>

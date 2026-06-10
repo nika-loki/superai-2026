@@ -7,14 +7,21 @@ import {
   contacts,
   deals,
 } from "@/agent/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import type { Org, Signal, Task, AgentRun, Contact, Deal } from "@/lib/data";
 import type { OrgTabData } from "@/components/org-detail-provider";
 import { OrgHeader } from "@/components/org-header";
 import { OrgTabsClient } from "@/components/org-tabs-client";
 import { OrgDetailProvider } from "@/components/org-detail-provider";
+import { VisitTracker } from "@/components/visit-tracker";
 import { RequestTimer } from "@/agent/lib/db/timing";
 import { storePerfData } from "@/agent/lib/db/perf-store";
+
+type OrgRow = typeof organisations.$inferSelect;
+type SignalRow = typeof signals.$inferSelect;
+type TaskRow = typeof tasks.$inferSelect;
+type ContactRow = typeof contacts.$inferSelect;
+type AgentRunRow = typeof agentRuns.$inferSelect;
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +49,7 @@ export default async function OrgDetailPage({
 
   // ── Fetch org ────────────────────────────────────────────────────────
 
-  const [orgRows] = await timer.timed("fetch-org", () =>
+  const [orgRows] = await timer.timed<OrgRow[]>("fetch-org", () =>
     db.select().from(organisations).where(eq(organisations.id, id)).limit(1),
   );
 
@@ -90,7 +97,7 @@ export default async function OrgDetailPage({
         db
           .select({ id: agentRuns.id })
           .from(agentRuns)
-          .where(and(eq(agentRuns.orgId, id), eq(agentRuns.status, "running")))
+          .where(and(eq(agentRuns.orgId, id), sql`${agentRuns.status}::text = 'running'`))
           .limit(1),
         db
           .select()
@@ -132,7 +139,7 @@ export default async function OrgDetailPage({
     // Table not migrated yet — return empty
   }
 
-  const mappedSignals: Signal[] = signalRows.map((s) => ({
+  const mappedSignals: Signal[] = signalRows.map((s: SignalRow) => ({
     id: s.id,
     type: s.type,
     title: s.title,
@@ -152,7 +159,7 @@ export default async function OrgDetailPage({
 
   let mappedTasks: Task[] = [];
   try {
-    mappedTasks = taskRows.map(({ task: t, contactName }) => ({
+    mappedTasks = taskRows.map(({ task: t, contactName }: { task: TaskRow; contactName: string | null }) => ({
       id: t.id,
       type: t.type,
       status: t.status ?? "pending",
@@ -169,7 +176,7 @@ export default async function OrgDetailPage({
     );
   }
 
-  const mappedContacts: Contact[] = contactRows.map((c) => ({
+  const mappedContacts: Contact[] = contactRows.map((c: ContactRow) => ({
     id: c.id,
     name: c.name,
     title: c.title,
@@ -191,10 +198,14 @@ export default async function OrgDetailPage({
     createdAt: d.createdAt.toISOString(),
   }));
 
-  const mappedRuns: AgentRun[] = runRows.map((r) => ({
+  const mappedRuns: AgentRun[] = runRows.map((r: AgentRunRow) => ({
     id: r.id,
     status: r.status ?? "pending",
     toolsInvoked: r.toolsInvoked ?? 0,
+    traceData:
+      (r.traceData as Array<{ callId: string; toolName: string; status: "completed" | "failed" | "running"; input?: string; output?: string; startedAt?: string; completedAt?: string }>) ??
+      [],
+    chainOfThought: r.chainOfThought ?? null,
     durationMs: r.durationMs,
     summary: r.summary,
     icpFitScore: r.icpFitScore,
@@ -220,6 +231,16 @@ export default async function OrgDetailPage({
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Track this org as recently visited (writes to localStorage) */}
+      <VisitTracker
+        org={{
+          id: org.id,
+          name: org.name,
+          status: org.status,
+          opportunityScore: org.opportunityScore,
+        }}
+      />
+
       {/* Hidden timing data for Playwright to extract */}
       <div
         id="__revenueos_perf__"

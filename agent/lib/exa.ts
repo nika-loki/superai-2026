@@ -6,7 +6,7 @@
  * for the Agent API which has complex streaming/polling behaviour.
  */
 
-import Exa from "exa-js";
+import { Exa } from "exa-js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -350,7 +350,7 @@ export async function exaFindPeople(input: {
         ...(input.startPublishedDate && {
             startPublishedDate: input.startPublishedDate,
         }),
-        contents: { text: true, highlights: { query: input.companyName } },
+        contents: { text: true, highlights: [{ query: input.companyName }] },
     });
 }
 
@@ -378,7 +378,7 @@ export async function exaCompanyDeepDive(input: {
             ...(input.startPublishedDate && {
                 startPublishedDate: input.startPublishedDate,
             }),
-            contents: { text: true, highlights: { query: angle } },
+            contents: { text: true, highlights: [{ query: angle }] },
         }),
     );
 
@@ -409,7 +409,7 @@ export async function exaPersonDeepDive(input: {
             ...(input.startPublishedDate && {
                 startPublishedDate: input.startPublishedDate,
             }),
-            contents: { text: true, highlights: { query: angle } },
+            contents: { text: true, highlights: [{ query: angle }] },
         }),
     );
 
@@ -420,7 +420,8 @@ export async function exaPersonDeepDive(input: {
 // SDK singleton — exposes Agent API, Research, Websets, etc.
 // ---------------------------------------------------------------------------
 
-let _exaSdk: Exa | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _exaSdk: any = null;
 
 /**
  * Get the exa-js SDK singleton.
@@ -434,7 +435,8 @@ let _exaSdk: Exa | null = null;
  * For simple search/answer/contents calls prefer the native-fetch helpers
  * above — they are lighter and easier to debug.
  */
-export function getExaSdk(): Exa {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getExaSdk(): any {
     if (!_exaSdk) {
         _exaSdk = new Exa(getApiKey());
         console.log("[exa] SDK client initialised");

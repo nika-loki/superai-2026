@@ -126,6 +126,18 @@ export const agentRuns = pgTable("agent_runs", {
   ashSessionId: text("ash_session_id"),
   status: runStatusEnum("status").default("pending"),
   toolsInvoked: integer("tools_invoked").default(0),
+  /** Array of tool call records persisted by the capture-trace hook */
+  traceData: jsonb("trace_data").$type<Array<{
+    callId: string;
+    toolName: string;
+    status: "completed" | "failed" | "running";
+    input?: string;
+    output?: string;
+    startedAt?: string;
+    completedAt?: string;
+  }>>().default([]),
+  /** Chain-of-thought reasoning text accumulated during the run */
+  chainOfThought: text("chain_of_thought"),
   durationMs: integer("duration_ms"),
   tokensUsed: integer("tokens_used"),
   summary: text("summary"),
