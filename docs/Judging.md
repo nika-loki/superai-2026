@@ -141,17 +141,6 @@ After the initial trigger, the agent runs autonomously on its self-determined sc
 | **Stripe webhook failure** | Events logged for manual reconciliation. Webhook endpoint returns 200 to acknowledge receipt, processes asynchronously. |
 | **HubSpot API error** | `hubspot_lookup` returns error gracefully. Agent proceeds with Exa-only research — no HubSpot dependency for core functionality. |
 
-### 7. Demo & Presentation
-
-**90-second live demo** showing the full agent lifecycle:
-
-1. **Onboarding** — Add a target account (Grab, Singapore)
-2. **Dashboard** — Show 5 APAC company cards with status and signal counts
-3. **Trigger** — Click "Run" to start the agent
-4. **Research stream** — Watch the agent execute in real-time: Singapore skill loads → Honcho recall → Exa searches → contacts and signals appear
-5. **Results** — Dashboard populates with real contacts, signals with quotes and ICP scores, engagement tasks, and deal recommendations
-6. **Scheduling** — Show self-determined `nextRunAt` and Stripe billing for the run
-
 ---
 
 ## Infrastructure Verification (for judges)
