@@ -1,6 +1,8 @@
-# RevenueOS — Autonomous Account Research Agent for APAC Markets
+# RevenueOS by SalesDuo — Autonomous Per-Account Sales Agent for APAC Markets
 
-SuperAI 24-hour hackathon project. RevenueOS is an AI agent that autonomously researches target accounts across 30+ APAC markets, surfaces buying signals, identifies key contacts, and recommends next-best-actions for sales teams.
+RevenueOS is a background autonomous per-account sales agent, embedded in HubSpot, purpose-built for APAC sales teams. One agent per account. Runs autonomously in the background. Adapts to whatever the account's current sales stage requires.
+
+AI handles the Pre (research, signals, briefings, warm paths) and the Post (drafts, CRM updates, tasks, follow-through). Humans own the During: every live buyer conversation.
 
 ## Project Docs
 
