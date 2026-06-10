@@ -66,15 +66,39 @@ RevenueOS is a **skill-routed sales agent** — one primary agent with 7 special
 
 The agent is fully autonomous after the initial account trigger. No human prompting between runs.
 
-**How it decides what to do next:**
+**How it thinks and adapts:**
 
-| Decision | How It's Made |
+RevenueOS doesn't follow scripts or rigid state machines. At the start of every session, the agent reads the full account picture — existing contacts, signals, tasks, deal stage, Honcho memory — and **plans what to do based on the situation it finds**. The same agent behaves completely differently for a brand-new prospect vs. a deal in late-stage negotiation vs. an account that's gone cold.
+
+**What the agent assesses before acting:**
+
+| Signal | Where It Looks | What It Decides |
+|---|---|---|
+| **Account maturity** | How many contacts, signals, and prior runs exist | First run → comprehensive deep dive. Established account → targeted refresh on what changed. |
+| **Deal stage** | Existing deals, their stages, associated contacts | Prospecting → focus on finding the right people. Evaluation → map the buying committee, find evaluation criteria. Negotiation → research decision-maker's priorities, find timing signals. Stall → look for what changed, find new angles. Post-close → nurture signals, expansion opportunities. |
+| **Task backlog** | Pending tasks from prior runs | Are there unactioned tasks? The agent checks what the human did (or didn't do) and adjusts — escalates, reframes, or moves on. |
+| **ICP fit strength** | Opportunity score + signal quality | Strong fit → research more deeply, schedule more frequent refreshes. Weak fit → lighter touch, longer intervals. |
+| **What changed** | New signals vs. Honcho memory | The agent compares current findings against accumulated memory to surface deltas — what's new, what escalated, what cooled off. |
+| **Market context** | Account's HQ country → market skill injection | Singapore, Australia, Indonesia each have different business cultures, industries, and search strategies. The agent adapts its research approach to the market. |
+
+**Example — same agent, different account situations:**
+
+| Account Situation | Agent Behavior |
 |---|---|
-| **Research depth** | Agent evaluates ICP fit from org properties and prior signals. Strong fit → full 8-angle deep dive + person deep dives. Moderate → targeted search only. |
-| **Refresh interval** | Self-determined based on ICP fit quality: 3 days (strong), 14 days (moderate), 30 days (poor). Written to `nextRunAt` in the database. An hourly cron triggers runs when due. |
-| **Signal relevance** | Each signal is scored against the seller's ICP (`icpRelevance` field). The agent reasons about *why* a signal matters for this specific account, not just that it exists. |
-| **Contact prioritization** | Contacts are ranked by seniority, relevance to ICP, and connection to active signals. The agent creates engagement tasks for the highest-priority contacts first. |
-| **Stage adaptation** | The agent adapts its behavior based on the account's current sales stage — prospecting, qualification, demo prep, negotiation, stall, loss, or post-close nurture. |
+| **New prospect, no data** | Loads onboarding-research skill. Runs `exa_company_deep_dive` (8 angles) + `exa_people_search` in parallel. Builds baseline intelligence from scratch. Creates initial engagement tasks. |
+| **Active deal, 3 contacts, 5 signals** | Detects ACTIVE ENGAGEMENT. Loads deal-management skill. Focuses on buying committee gaps — who's missing? Maps economic/technical/user buyers. Finds talking points for next interaction. Researches competitor presence. |
+| **Stalled deal, pending tasks from 2 weeks ago** | Sees unactioned tasks. Investigates what changed — new leadership? Budget shifts? Competitive moves? Recommends re-engagement angle or identifies if the deal is dead. |
+| **Strong ICP fit, scored 85** | Schedules next run in 3 days. Goes deep on every signal. Profiles all stakeholders with `exa_person_deep_dive`. Creates high-priority outreach tasks with specific talking points. |
+| **Weak ICP fit, scored 35** | Light refresh in 30 days. Checks for material changes only. No deep dives. Parks the account. |
+
+**How it self-schedules:**
+
+The agent decides its own refresh interval based on its assessment:
+- **3 days** — strong ICP fit, active signals, live deal motion
+- **14 days** — moderate fit, some engagement, monitoring phase
+- **30 days** — weak fit or low activity, keeping tabs
+
+Written to `nextRunAt` in the database. An hourly cron triggers runs when due. No human sets a timer.
 
 **Reasoning patterns:**
 - **Sequential planning with full model intelligence**: We don't use rigid state machines or scripted workflows. The agent follows a sequential pipeline (load context → recall memory → research → persist → remember), but within each step, it operates with the model's full reasoning capability — choosing which tools to call, how to interpret results, when to go deeper vs. move on, and how to synthesize findings. The pipeline provides structure; the model provides judgment.
