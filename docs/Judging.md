@@ -76,9 +76,46 @@ The agent is fully autonomous after the initial account trigger. No human prompt
 | **Stage adaptation** | The agent adapts its behavior based on the account's current sales stage — prospecting, qualification, demo prep, negotiation, stall, loss, or post-close nurture. |
 
 **Reasoning patterns:**
-- Tool selection: agent chooses from 16 tools based on the research question
-- Sequential planning: loads market skill → recalls memory → searches → persists → remembers
-- Self-correction: if Exa returns no results, agent tries alternate queries; if Honcho is unavailable, it continues without recall
+- **Sequential planning with full model intelligence**: We don't use rigid state machines or scripted workflows. The agent follows a sequential pipeline (load context → recall memory → research → persist → remember), but within each step, it operates with the model's full reasoning capability — choosing which tools to call, how to interpret results, when to go deeper vs. move on, and how to synthesize findings. The pipeline provides structure; the model provides judgment.
+- **Self-correction**: if Exa returns no results, agent tries alternate queries; if Honcho is unavailable, it continues without recall
+
+### 2b. Self-Learning & Self-Improving Architecture
+
+RevenueOS gets smarter with every run — not through prompt engineering, but through accumulated memory and behavioral adaptation.
+
+**How it learns across runs:**
+
+| Mechanism | How It Works |
+|---|---|
+| **Honcho persistent memory** | Each account has its own Honcho peer. Every run stores learnings — company overview, key contacts, signal interpretations, what worked, what didn't. Next run recalls everything. The agent literally remembers what it learned last time. |
+| **Cross-run signal comparison** | On refresh runs, the agent compares new signals against Honcho memory to identify *what changed*. It doesn't re-research from scratch — it builds on prior intelligence. |
+| **Adaptive depth** | The agent learns from its own scoring history. If an account scored 80 last run and no new signals emerged, it spends less time on deep dives and more on targeted monitoring. If signals are heating up, it goes deeper. |
+| **Contact relationship accumulation** | Relationships (reports_to, mentor, former_colleague, collaborator) persist across runs. The agent builds a richer org chart every cycle. |
+| **Task outcome feedback** | Pending tasks from prior runs are visible on each turn (via stage-context.ts). The agent can see what it recommended last time, check if tasks were actioned, and adjust its next recommendations accordingly. |
+
+**Self-improvement loop:**
+
+```
+Run 1: Broad research → baseline signals + contacts → initial ICP score
+  ↓ (Honcho stores: company overview, key people, signal landscape)
+Run 2: Targeted refresh → compares against Run 1 memory → finds what changed
+  ↓ (Honcho stores: new signals, updated relationships, what worked)
+Run 3: Stage-adaptive → detects ACTIVE ENGAGEMENT → switches to deal-management skill
+  ↓ (Honcho stores: buying committee dynamics, competitive intel, timing signals)
+Run N: The agent knows this account deeply. It surfaces nuanced, relationship-aware
+       recommendations that no first-run agent could produce.
+```
+
+**The model as a reasoning engine, not a script executor:**
+
+Traditional agent architectures use finite state machines: if state X, do Y. RevenueOS takes a different approach. The sequential pipeline provides scaffolding (load context → research → persist → remember), but within each step the model exercises full judgment. It decides:
+- Which of the 5 Exa tools to call based on what it already knows
+- When a signal is worth pursuing deeper vs. moving on
+- How to frame ICP relevance for this specific seller's capabilities
+- What opening line would resonate with this specific stakeholder
+- Whether the account needs a full deep dive or a targeted refresh
+
+This is why the quality of output improves across runs — the model isn't just executing a script with more data. It's reasoning over an increasingly rich context with each cycle.
 
 ### 3. Actions & Tool Use
 
