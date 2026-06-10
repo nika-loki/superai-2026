@@ -1,6 +1,6 @@
-# RevenueOS by SalesDuo — Autonomous Per-Account Sales Agent for APAC Markets
+# RevenueOS by SalesDuo — Autonomous Account Agent for APAC Markets
 
-RevenueOS is a background autonomous per-account sales agent, embedded in HubSpot, purpose-built for APAC sales teams. One agent per account. Runs autonomously in the background. Adapts to whatever the account's current sales stage requires.
+RevenueOS is a background autonomous account agent, embedded in HubSpot, purpose-built for APAC sales teams. One agent per account. Runs autonomously in the background. Adapts to whatever the account's current sales stage requires.
 
 AI handles the Pre (research, signals, briefings, warm paths) and the Post (drafts, CRM updates, tasks, follow-through). Humans own the During: every live buyer conversation.
 

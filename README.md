@@ -1,6 +1,6 @@
 # RevenueOS by SalesDuo
 
-**Background Autonomous Per-Account Sales Agent, Purpose-Built for APAC**
+**Background Autonomous Account Agent, Purpose-Built for APAC**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

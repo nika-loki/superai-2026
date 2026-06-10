@@ -52,7 +52,7 @@ All three awards are stackable. RevenueOS is scoped to win all three.
 
 RevenueOS is a **skill-routed sales agent** — one primary agent with 7 specialized sub-behaviors for different sales scenarios.
 
-- **Purpose**: autonomous per-account sales research agent, purpose-built for APAC
+- **Purpose**: autonomous account agent, purpose-built for APAC
 - **One agent instance per CRM account**, each with its own context and memory
 - **4 sales skills** the agent selects based on account state: onboarding-research, prospecting, deal-management, hubspot-import
 - **Market skills** dynamically injected based on account's APAC region — currently implemented: singapore, australia, indonesia. Architecture supports all 30+ APAC markets with per-country market skills covering local business culture, key industries, and region-specific search strategies.
