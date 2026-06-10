@@ -13,6 +13,10 @@ import type { OrgTabData } from "@/components/org-detail-provider";
 import { OrgHeader } from "@/components/org-header";
 import { OrgTabsClient } from "@/components/org-tabs-client";
 import { OrgDetailProvider } from "@/components/org-detail-provider";
+import { RequestTimer } from "@/agent/lib/db/timing";
+import { storePerfData } from "@/agent/lib/db/perf-store";
+
+export const dynamic = "force-dynamic";
 
 export default async function OrgDetailPage({
   params,
@@ -21,6 +25,7 @@ export default async function OrgDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string; trigger?: string }>;
 }) {
+  const timer = new RequestTimer("org-detail");
   const { id } = await params;
   const search = await searchParams;
   const defaultTab =
@@ -37,11 +42,9 @@ export default async function OrgDetailPage({
 
   // ── Fetch org ────────────────────────────────────────────────────────
 
-  const [orgRows] = await db
-    .select()
-    .from(organisations)
-    .where(eq(organisations.id, id))
-    .limit(1);
+  const [orgRows] = await timer.timed("fetch-org", () =>
+    db.select().from(organisations).where(eq(organisations.id, id)).limit(1),
+  );
 
   if (!orgRows) {
     return (
@@ -68,6 +71,7 @@ export default async function OrgDetailPage({
     status: orgRows.status ?? "onboarding",
     lastResearchedAt: orgRows.lastResearchedAt?.toISOString() ?? null,
     nextRunAt: orgRows.nextRunAt?.toISOString() ?? null,
+    refreshIntervalDays: orgRows.refreshIntervalDays ?? null,
     properties:
       (orgRows.properties as Array<{
         key: string;
@@ -78,48 +82,52 @@ export default async function OrgDetailPage({
   };
 
   // ── Fetch all tab data (same as API route) ───────────────────────────
+  // Merge active-run-check into the parallel batch (all only need orgId from URL)
 
-  const [activeRun] = await db
-    .select({ id: agentRuns.id })
-    .from(agentRuns)
-    .where(and(eq(agentRuns.orgId, id), eq(agentRuns.status, "running")))
-    .limit(1);
-  org.hasActiveRun = !!activeRun;
-
-  const [signalRows, taskRows, contactRows, runRows] =
-    await Promise.all([
-      db
-        .select()
-        .from(signals)
-        .where(eq(signals.orgId, id))
-        .orderBy(desc(signals.createdAt)),
-      db
-        .select({ task: tasks, contactName: contacts.name })
-        .from(tasks)
-        .where(eq(tasks.orgId, id))
-        .leftJoin(contacts, eq(tasks.contactId, contacts.id))
-        .orderBy(desc(tasks.priority)),
-      db
-        .select()
-        .from(contacts)
-        .where(eq(contacts.orgId, id))
-        .orderBy(desc(contacts.discoveredAt)),
-      db
-        .select()
-        .from(agentRuns)
-        .where(eq(agentRuns.orgId, id))
-        .orderBy(desc(agentRuns.createdAt)),
-    ]);
+  const [activeRun, signalRows, taskRows, contactRows, runRows] =
+    await timer.timed("parallel-all-data", () =>
+      Promise.all([
+        db
+          .select({ id: agentRuns.id })
+          .from(agentRuns)
+          .where(and(eq(agentRuns.orgId, id), eq(agentRuns.status, "running")))
+          .limit(1),
+        db
+          .select()
+          .from(signals)
+          .where(eq(signals.orgId, id))
+          .orderBy(desc(signals.createdAt)),
+        db
+          .select({ task: tasks, contactName: contacts.name })
+          .from(tasks)
+          .where(eq(tasks.orgId, id))
+          .leftJoin(contacts, eq(tasks.contactId, contacts.id))
+          .orderBy(desc(tasks.priority)),
+        db
+          .select()
+          .from(contacts)
+          .where(eq(contacts.orgId, id))
+          .orderBy(desc(contacts.discoveredAt)),
+        db
+          .select()
+          .from(agentRuns)
+          .where(eq(agentRuns.orgId, id))
+          .orderBy(desc(agentRuns.createdAt)),
+      ]),
+    );
+  org.hasActiveRun = !!activeRun?.[0];
 
   // Deals table may not exist yet — graceful fallback
   let dealRows: { deal: (typeof deals.$inferSelect); contactName: string | null }[] = [];
   try {
-    dealRows = await db
-      .select({ deal: deals, contactName: contacts.name })
-      .from(deals)
-      .where(eq(deals.orgId, id))
-      .leftJoin(contacts, eq(deals.primaryContactId, contacts.id))
-      .orderBy(desc(deals.createdAt));
+    dealRows = await timer.timed("fetch-deals", () =>
+      db
+        .select({ deal: deals, contactName: contacts.name })
+        .from(deals)
+        .where(eq(deals.orgId, id))
+        .leftJoin(contacts, eq(deals.primaryContactId, contacts.id))
+        .orderBy(desc(deals.createdAt)),
+    );
   } catch {
     // Table not migrated yet — return empty
   }
@@ -205,8 +213,20 @@ export default async function OrgDetailPage({
     runs: mappedRuns,
   };
 
+  // Inject performance data — stored server-side, fetchable via /api/perf
+  const report = timer.toReport();
+  storePerfData("org-detail", report);
+  console.log("[perf] org-detail:", JSON.stringify(report));
+
   return (
     <div className="min-h-screen bg-white">
+      {/* Hidden timing data for Playwright to extract */}
+      <div
+        id="__revenueos_perf__"
+        data-perf={JSON.stringify(report)}
+        style={{ display: "none" }}
+      />
+
       {/* Header */}
       <OrgHeader
         org={org}
