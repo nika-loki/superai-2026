@@ -238,16 +238,6 @@ hack: temp bypass auth for demo (revert after)
 - `chore:` build, deps, tooling
 - `hack:` temporary hack for demo (must note revert plan)
 
-## Hackathon Constraints
-
-- **24-hour build** — optimize for speed and demo impact
-- **Must deploy** to AWS (Aurora RDS, S3, Cognito) + Vercel (Next.js + Ash)
-- **Open source** — no proprietary dependencies that prevent public repo
-- **Awards targeting**: Top 5 Overall, Best use of Exa, Best use of Stripe
-- **Demo is live on stage** — the UI must work, the agent must run end-to-end, data must be real
-- **Exa integration must be prominent** — 5 agent tools call Exa, core to the product
-- **Stripe integration must be prominent** — subscription/billing flow must be visible in the demo
-
 ## Key Commands
 
 ```bash
