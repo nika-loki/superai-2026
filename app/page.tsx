@@ -1,6 +1,6 @@
 import { db } from "@/agent/lib/db/index";
-import { organisations, signals } from "@/agent/lib/db/schema";
-import { count, sql, inArray } from "drizzle-orm";
+import { organisations, signals, agentRuns } from "@/agent/lib/db/schema";
+import { count, sql, inArray, eq, and } from "drizzle-orm";
 import { DashboardTableClient } from "@/components/dashboard-table-client";
 import { SearchAccountsHint } from "@/components/search-accounts-hint";
 import { RequestTimer } from "@/agent/lib/db/timing";
@@ -49,7 +49,7 @@ export default async function DashboardPage({
       .offset(offset),
   );
 
-  // Fetch signal counts only for the orgs on this page
+  // Fetch signal counts + active runs only for the orgs on this page
   const orgIds = orgs.map((o: OrgRow) => o.id);
 
   const signalCounts = orgIds.length > 0
@@ -65,9 +65,20 @@ export default async function DashboardPage({
       )
     : [];
 
+  const activeRunRows = orgIds.length > 0
+    ? await timer.timed<{ orgId: string }[]>("active-runs", () =>
+        db
+          .select({ orgId: agentRuns.orgId })
+          .from(agentRuns)
+          .where(and(inArray(agentRuns.orgId, orgIds), eq(agentRuns.status, "running")))
+          .groupBy(agentRuns.orgId),
+      )
+    : [];
+
   const signalCountMap = new Map(
     signalCounts.map((r: { orgId: string | null; count: number }) => [r.orgId, r.count]),
   );
+  const activeRunOrgIds = new Set(activeRunRows.map((r: { orgId: string }) => r.orgId));
 
   const rows = orgs.map((org: OrgRow) => ({
     id: org.id,
@@ -80,6 +91,7 @@ export default async function DashboardPage({
     nextRunAt: org.nextRunAt?.toISOString() ?? null,
     refreshIntervalDays: org.refreshIntervalDays ?? null,
     signalCount: signalCountMap.get(org.id) ?? 0,
+    hasActiveRun: activeRunOrgIds.has(org.id),
   }));
 
   // Inject performance data — stored server-side, fetchable via /api/perf
