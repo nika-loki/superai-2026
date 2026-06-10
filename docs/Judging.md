@@ -55,7 +55,7 @@ RevenueOS is a **skill-routed sales agent** — one primary agent with 7 special
 - **Purpose**: autonomous per-account sales research agent, purpose-built for APAC
 - **One agent instance per CRM account**, each with its own context and memory
 - **4 sales skills** the agent selects based on account state: onboarding-research, prospecting, deal-management, hubspot-import
-- **3 market skills** dynamically injected based on account region: singapore, australia, indonesia
+- **Market skills** dynamically injected based on account's APAC region — currently implemented: singapore, australia, indonesia. Architecture supports all 30+ APAC markets with per-country market skills covering local business culture, key industries, and region-specific search strategies.
 - **3 dynamic instruction layers** inject context automatically: seller ICP, account memory, stage detection
 - **Stage-adaptive**: the agent detects account state (new prospect, active engagement, refresh run) and selects the right skill
 - **Scope**: the sales motion only. It handles the **Pre** (research, signals, briefings, warm paths) and the **Post** (drafts, CRM updates, tasks, follow-through). Humans own the **During** (every live buyer conversation). The agent never conducts live buyer conversations.
@@ -163,13 +163,17 @@ HubSpot lookup (check existing data)
 | **deal-management** | Active sales cycle, existing contacts/signals | Buying committee mapping, next-best-action by deal stage (discovery → evaluation → negotiation → at-risk), engagement timing |
 | **hubspot-import** | CRM data available for the account | Lookup existing contacts/deals to avoid duplicating research |
 
-**Market skills** (dynamically injected based on account's HQ country):
+**Market skills** (dynamically injected based on account's APAC region):
+
+Each target account gets its market skill injected based on `hqCountry`. The architecture supports all 30+ APAC markets — each skill provides local business culture, key industries, language considerations, and region-specific search strategies. Currently implemented:
 
 | Skill | Trigger | What It Injects |
 |---|---|---|
-| **singapore** | `hqCountry = "Singapore"` | Local business culture, key industries (fintech, logistics, SaaS), region-specific search strategies |
-| **australia** | `hqCountry = "Australia"` | Local business culture, key industries, ANZ-specific search strategies |
-| **indonesia** | `hqCountry = "Indonesia"` | Local business culture, key industries, Bahasa Indonesia considerations, local platform norms |
+| **singapore** | `hqCountry = "Singapore"` | SEA financial hub, fintech/logistics/SaaS focus, English-first business culture |
+| **australia** | `hqCountry = "Australia"` | ANZ market, enterprise sales norms, local industry landscape |
+| **indonesia** | `hqCountry = "Indonesia"` | Largest SEA market, Bahasa Indonesia considerations, local platform norms |
+
+Additional APAC market skills follow the same pattern and can be added per-country without changing the agent or tools.
 
 **Execution pipeline:**
 
