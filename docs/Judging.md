@@ -118,16 +118,20 @@ The agent operates through a defined **skill pipeline**:
 
 ### 5. Human-in-the-Loop
 
-Human involvement is **minimal by design** — the agent is autonomous:
+The agent is not agentic in a "human-in-the-loop" sense — it is **proactive, not reactive**.
 
-| Touchpoint | Human Role | Agent Role |
-|---|---|---|
-| **Onboarding** | Provides company name, domain, ICP criteria | Creates org record, uploads context to S3 |
-| **Initial trigger** | Clicks "Run" | Begins full research cycle |
-| **Review** | Views contacts, signals, tasks, deals in dashboard | Produces prioritized, scored outputs |
-| **Reconnection** | Can replay full agent execution trace via Ash stream | Streams step-by-step reasoning for transparency |
+Information gathering and triangulation of almost any data is fully autonomous: the agent searches, cross-references, scores, and persists without any human direction. It then tells the human exactly what to do — who to contact, what to say, when to reach out, and why.
 
-After the initial trigger, the agent runs autonomously on its self-determined schedule. Humans never need to prompt, approve, or override between cycles.
+The human's only role is to **act on the agent's recommendations** in live buyer conversations. Every research cycle, signal capture, contact enrichment, and task generation happens without human involvement.
+
+| What | Who Does It |
+|---|---|
+| Research, search, signal detection, contact discovery | **Agent — fully autonomous** |
+| Cross-referencing data across Exa, HubSpot, Honcho | **Agent — fully autonomous** |
+| Scoring signals against ICP, prioritizing contacts | **Agent — fully autonomous** |
+| Deciding when to re-research an account | **Agent — fully autonomous (self-scheduling)** |
+| Recommending next-best-actions with rationale | **Agent — proactive suggestions** |
+| Having live buyer conversations | **Human — owns the "During"** |
 
 ### 6. Failure Handling
 
