@@ -1,19 +1,33 @@
 # RevenueOS
 
-**Autonomous Account Research Agent for APAC Markets**
+**Autonomous Revenue Agent, Purpose-Built for APAC**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-RevenueOS is an AI agent that autonomously researches target accounts across 30+ APAC markets, surfaces buying signals, identifies key contacts, and recommends next-best-actions for sales teams.
+RevenueOS is an autonomous AI agent that researches target accounts across 30+ APAC markets, surfaces stakeholders and buying signals, and schedules ongoing re-evaluation — all without human prompting between runs.
 
-Built for the [SuperAI 2026 Hackathon](https://superai.io/) in 24 hours.
+It doesn't just find data. It researches accounts end-to-end: deep-diving companies via 8-angle Exa searches, profiling stakeholders across 6 dimensions, scoring signals against your ICP, mapping buying committees, and turning every insight into a prioritized next-best-action for your sales team. Then it remembers what it learned, decides when to re-research, and runs again on its own schedule.
+
+Built for the [SuperAI 2026 Hackathon](https://superai.io/) — live-demoed on the WEKA stage in front of 10,000 attendees.
+
+## What Makes It Different
+
+| Feature | How It Works |
+|---|---|
+| **Self-scheduling** | Agent decides its own refresh interval (3 / 14 / 30 days) based on ICP fit quality. No human sets a timer. |
+| **Self-learning** | Honcho accumulates memory across runs per account. Each research cycle is smarter than the last. |
+| **Market-specific intelligence** | Per-country skills with region-appropriate research strategies (Singapore, Australia, Indonesia, more to come). |
+| **16-tool pipeline** | Search (Exa), persistence (Aurora RDS), context (DB read), memory (Honcho), CRM (HubSpot) — all wired end-to-end. |
+| **Multi-source signals** | Dynamic signal types from ICP, direct quotes from stakeholders, relevance reasoning — not just keyword matches. |
+| **CRM-enriched research** | HubSpot integration supplements Exa research with existing CRM data, avoiding duplication and providing deal context. |
 
 ## How It Works
 
 1. **Add target accounts** — Enter company names or domains with your ICP criteria
-2. **Agent researches autonomously** — The AI agent runs deep research using Exa search: company deep dives, stakeholder profiling, signal detection, people discovery
+2. **Agent researches autonomously** — Deep research using Exa: 8-angle company deep dives, 6-dimension stakeholder profiling, signal detection, people discovery
 3. **Signals surface automatically** — Funding rounds, leadership changes, product launches, expansion signals — all captured and scored for ICP relevance
-4. **Get daily actions** — Prioritized tasks with rationale: who to contact, what to say, when to reach out
+4. **Get prioritized actions** — Engagement tasks with rationale: who to contact, what to say, when to reach out
+5. **Agent re-runs on its own** — Self-determined schedule based on account fit. Accumulates knowledge across runs.
 
 ## Tech Stack
 
@@ -24,10 +38,13 @@ Built for the [SuperAI 2026 Hackathon](https://superai.io/) in 24 hours.
 | Search | [Exa](https://exa.ai) (5 agent tools) |
 | Frontend | Next.js 15 (App Router) + Shadcn UI |
 | Database | AWS Aurora RDS (PostgreSQL) + Drizzle ORM |
+| Storage | AWS S3 |
+| Auth | AWS Cognito |
 | Payments | [Stripe](https://stripe.com) (subscription + metered usage) |
 | Agent Memory | [Honcho](https://honcho.ai) |
 | CRM | HubSpot integration |
 | Observability | Braintrust + OpenTelemetry |
+| Hosting | Vercel (deploy + cron jobs) |
 
 ## Architecture
 
@@ -37,9 +54,57 @@ User → Next.js UI → Ash Agent → Exa Search (5 tools)
                               → DB Read (3 tools)
                               → Honcho Memory (2 tools)
                               → HubSpot CRM (1 tool)
+
+Hourly Cron → Check accounts where nextRunAt ≤ now → Trigger fresh agent session
 ```
 
 See [`docs/Architecture.md`](docs/Architecture.md) for the full system design.
+
+## Agent Pipeline
+
+1. Load market skill for the account's region
+2. Fetch org context and recall accumulated knowledge from Honcho
+3. Check CRM context via HubSpot lookup
+4. Execute Exa searches (people, company deep dive, agentic research, Q&A)
+5. Deep-dive key contacts found
+6. Persist all results to Aurora RDS
+7. Store learnings back to Honcho
+8. Determine refresh interval and write `nextRunAt`
+9. Create engagement tasks for the sales team
+
+## 16 Agent Tools
+
+### Exa Search (5)
+- **exa_people_search** — Find stakeholders at target companies (LinkedIn profiles, titles, seniority)
+- **exa_company_deep_dive** — 8-angle parallel search: funding, leadership, expansion, product, financials, regulatory, ICP signals, competitive
+- **exa_person_deep_dive** — 6-angle stakeholder profiling: speeches, podcasts, conferences, LinkedIn, social, news
+- **exa_agentic_research** — Multi-step synthesis via Exa Agent API for complex research questions
+- **exa_answer** — Direct Q&A with citations for targeted factual queries
+
+### Database Write (5)
+- **db_write_contacts** — Persist discovered contacts (dedup by org + LinkedIn)
+- **db_write_signals** — Persist signals with quotes, ICP relevance, multi-source URLs
+- **db_write_tasks** — Persist engagement tasks with rationale and linked signal IDs
+- **db_write_research_log** — Finalize run: summary, ICP fit score, recommended actions
+- **db_update_org** — Update org scores, refresh interval, scheduling
+
+### Database Read (3)
+- **db_get_org** — Fetch org details before research begins
+- **db_create_run** — Create agent_run record at session start
+- **db_update_signal** — Link signals to contacts during synthesis
+
+### Memory & CRM (3)
+- **honcho_remember** — Store findings per account, accumulates across runs
+- **honcho_recall** — Retrieve knowledge from all prior runs on this account
+- **hubspot_lookup** — Search existing CRM data to avoid duplicating research
+
+## Data Model (8 Tables)
+
+`workspaces` → `organisations` → `agent_runs`, `contacts`, `signals`, `tasks`, `deals`
+
+`contacts` ↔ `contacts` (via `relationships` — reports_to, mentor, former_colleague, collaborator)
+
+All linked to HubSpot via `hubspotId` fields on organisations, contacts, and deals.
 
 ## Getting Started
 
@@ -54,7 +119,7 @@ See [`docs/Architecture.md`](docs/Architecture.md) for the full system design.
 
 ```bash
 # Clone the repo
-git clone https://github.com/justincheu/superai-2026.git
+git clone https://github.com/nika-loki/superai-2026.git
 cd superai-2026
 
 # Install dependencies
@@ -80,26 +145,9 @@ superai/
 ├── app/                 # Next.js App Router (pages + API routes)
 ├── components/          # Shadcn UI components
 ├── lib/                 # Shared utilities (S3, Stripe, formatting)
-└── docs/                # Architecture & planning docs
+├── docs/                # Architecture & planning docs
+└── evals/               # Agent quality evaluations
 ```
-
-## Agent Tools (16)
-
-### Exa Search (5)
-- **exa_people_search** — LinkedIn profile discovery at target companies
-- **exa_company_deep_dive** — 8 parallel searches (funding, leadership, expansion, etc.)
-- **exa_person_deep_dive** — 6-angle stakeholder profiling
-- **exa_agentic_research** — Multi-step research via Exa Agent API
-- **exa_answer** — Direct Q&A with citations
-
-### Database (8)
-- **db_write_contacts/signals/tasks/research_log** — Persist research findings
-- **db_get_org / db_create_run / db_update_signal** — Read & update records
-- **db_update_org** — Update org scores and scheduling
-
-### Memory & CRM (3)
-- **honcho_remember / honcho_recall** — Persistent agent memory across runs
-- **hubspot_lookup** — Search existing CRM data before duplicate research
 
 ## Key Commands
 
